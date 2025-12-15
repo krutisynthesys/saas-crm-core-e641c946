@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,19 +12,36 @@ interface TaskFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   task?: Task | null;
-  mode: 'create' | 'edit' | 'reschedule' | 'reassign';
+  mode?: 'create' | 'edit' | 'reschedule' | 'reassign';
+  onSubmit?: () => void;
 }
 
-export function TaskFormDialog({ open, onOpenChange, task, mode }: TaskFormDialogProps) {
+export function TaskFormDialog({ open, onOpenChange, task, mode = 'create', onSubmit }: TaskFormDialogProps) {
   const [formData, setFormData] = useState({
-    title: task?.title || '',
-    description: task?.description || '',
-    leadName: task?.leadName || '',
-    assignee: task?.assignee || '',
-    dueDate: task?.dueDate || '',
-    priority: task?.priority || 'medium',
-    type: task?.type || 'call',
+    title: '',
+    description: '',
+    leadName: '',
+    assignee: '',
+    dueDate: '',
+    priority: 'medium' as Task['priority'],
+    type: 'call' as Task['type'],
   });
+
+  useEffect(() => {
+    if (task) {
+      setFormData({
+        title: task.title || '',
+        description: task.description || '',
+        leadName: task.leadName || '',
+        assignee: task.assignee || '',
+        dueDate: task.dueDate || '',
+        priority: task.priority || 'medium',
+        type: task.type || 'call',
+      });
+    } else {
+      setFormData({ title: '', description: '', leadName: '', assignee: '', dueDate: '', priority: 'medium', type: 'call' });
+    }
+  }, [task, open]);
 
   const getTitle = () => {
     switch (mode) {
@@ -51,6 +68,7 @@ export function TaskFormDialog({ open, onOpenChange, task, mode }: TaskFormDialo
     }
     const messages = { create: 'Task created!', edit: 'Task updated!', reschedule: 'Task rescheduled!', reassign: 'Task reassigned!' };
     toast.success(messages[mode]);
+    onSubmit?.();
     onOpenChange(false);
   };
 
