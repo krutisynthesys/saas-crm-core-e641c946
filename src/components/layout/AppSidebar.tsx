@@ -13,11 +13,9 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
-  Search,
-  Bell,
   Briefcase,
-  FileText,
   FolderOpen,
+  MapPin,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -33,6 +31,7 @@ const navItems = [
   { to: '/opportunities', icon: Target, label: 'Opportunities' },
   { to: '/tasks', icon: CheckSquare, label: 'Tasks' },
   { to: '/activities', icon: Briefcase, label: 'Activities' },
+  { to: '/tracking', icon: MapPin, label: 'Tracking' },
   { to: '/email-templates', icon: Mail, label: 'Email Templates' },
   { to: '/content-library', icon: FolderOpen, label: 'Content Library' },
   { to: '/reports', icon: BarChart3, label: 'Reports' },
