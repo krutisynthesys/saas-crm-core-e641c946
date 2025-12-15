@@ -14,6 +14,7 @@ import EmailTemplates from "./pages/EmailTemplates";
 import ContentLibrary from "./pages/ContentLibrary";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
+import Tracking from "./pages/Tracking";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ function AppRoutes() {
       <Route path="/content-library" element={<ProtectedRoute><ContentLibrary /></ProtectedRoute>} />
       <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+      <Route path="/tracking" element={<ProtectedRoute><Tracking /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

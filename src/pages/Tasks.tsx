@@ -6,24 +6,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
   Plus,
   Search,
-  Filter,
   MoreHorizontal,
   Phone,
   Mail,
@@ -34,9 +26,15 @@ import {
   CheckCircle,
   AlertCircle,
   CalendarDays,
+  Edit,
+  Trash2,
+  RefreshCw,
+  Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { TaskFormDialog } from '@/components/dialogs/TaskFormDialog';
+import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
 
 const taskTypeIcons = {
   call: Phone,
@@ -54,18 +52,14 @@ const taskTypeColors = {
   'follow-up': 'bg-emerald-100 text-emerald-600',
 };
 
-const statusConfig = {
-  pending: { label: 'Pending', icon: Clock, color: 'text-amber-600' },
-  'in-progress': { label: 'In Progress', icon: AlertCircle, color: 'text-blue-600' },
-  completed: { label: 'Completed', icon: CheckCircle, color: 'text-green-600' },
-  overdue: { label: 'Overdue', icon: AlertCircle, color: 'text-red-600' },
-};
-
 export default function Tasks() {
   const [tasks, setTasks] = useState(mockTasks);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [activeTab, setActiveTab] = useState('all');
+  const [formDialogOpen, setFormDialogOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [deletingTask, setDeletingTask] = useState<Task | null>(null);
+  const [dialogMode, setDialogMode] = useState<'create' | 'edit' | 'reschedule' | 'reassign'>('create');
 
   const filteredTasks = tasks.filter((task) => {
     const matchesSearch =
@@ -100,6 +94,50 @@ export default function Tasks() {
     toast.success('Task updated');
   };
 
+  const handleAddTask = () => {
+    setEditingTask(null);
+    setDialogMode('create');
+    setFormDialogOpen(true);
+  };
+
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task);
+    setDialogMode('edit');
+    setFormDialogOpen(true);
+  };
+
+  const handleReschedule = (task: Task) => {
+    setEditingTask(task);
+    setDialogMode('reschedule');
+    setFormDialogOpen(true);
+  };
+
+  const handleReassign = (task: Task) => {
+    setEditingTask(task);
+    setDialogMode('reassign');
+    setFormDialogOpen(true);
+  };
+
+  const handleDeleteTask = () => {
+    if (deletingTask) {
+      setTasks(prev => prev.filter(t => t.id !== deletingTask.id));
+      toast.success('Task deleted');
+      setDeletingTask(null);
+    }
+  };
+
+  const handleFormSubmit = () => {
+    const messages = {
+      create: 'Task created',
+      edit: 'Task updated',
+      reschedule: 'Task rescheduled',
+      reassign: 'Task reassigned',
+    };
+    toast.success(messages[dialogMode]);
+    setFormDialogOpen(false);
+    setEditingTask(null);
+  };
+
   const pendingCount = tasks.filter((t) => t.status === 'pending').length;
   const overdueCount = tasks.filter((t) => new Date(t.dueDate) < new Date() && t.status !== 'completed').length;
   const completedCount = tasks.filter((t) => t.status === 'completed').length;
@@ -113,7 +151,7 @@ export default function Tasks() {
             <h2 className="text-2xl font-bold text-foreground">Tasks & Activities</h2>
             <p className="text-muted-foreground">Manage your tasks and track progress</p>
           </div>
-          <Button variant="gradient">
+          <Button variant="gradient" onClick={handleAddTask}>
             <Plus className="h-4 w-4 mr-1.5" /> New Task
           </Button>
         </div>
@@ -201,7 +239,6 @@ export default function Tasks() {
                   const TypeIcon = taskTypeIcons[task.type];
                   const typeColor = taskTypeColors[task.type];
                   const isOverdue = new Date(task.dueDate) < new Date() && task.status !== 'completed';
-                  const StatusIcon = statusConfig[task.status].icon;
                   
                   return (
                     <div
@@ -258,11 +295,18 @@ export default function Tasks() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="bg-popover">
-                            <DropdownMenuItem className="cursor-pointer">Edit Task</DropdownMenuItem>
-                            <DropdownMenuItem className="cursor-pointer">Reschedule</DropdownMenuItem>
-                            <DropdownMenuItem className="cursor-pointer">Reassign</DropdownMenuItem>
-                            <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive">
-                              Delete
+                            <DropdownMenuItem className="cursor-pointer" onClick={() => handleEditTask(task)}>
+                              <Edit className="h-4 w-4 mr-2" /> Edit Task
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="cursor-pointer" onClick={() => handleReschedule(task)}>
+                              <RefreshCw className="h-4 w-4 mr-2" /> Reschedule
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="cursor-pointer" onClick={() => handleReassign(task)}>
+                              <Users className="h-4 w-4 mr-2" /> Reassign
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive" onClick={() => setDeletingTask(task)}>
+                              <Trash2 className="h-4 w-4 mr-2" /> Delete
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -275,6 +319,22 @@ export default function Tasks() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Dialogs */}
+      <TaskFormDialog
+        open={formDialogOpen}
+        onOpenChange={setFormDialogOpen}
+        task={editingTask}
+        mode={dialogMode}
+      />
+      <ConfirmDialog
+        open={!!deletingTask}
+        onOpenChange={() => setDeletingTask(null)}
+        title="Delete Task"
+        description={`Are you sure you want to delete "${deletingTask?.title}"? This action cannot be undone.`}
+        onConfirm={handleDeleteTask}
+        variant="destructive"
+      />
     </DashboardLayout>
   );
 }

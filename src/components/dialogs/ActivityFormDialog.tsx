@@ -11,9 +11,10 @@ import { toast } from 'sonner';
 interface ActivityFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSubmit?: () => void;
 }
 
-export function ActivityFormDialog({ open, onOpenChange }: ActivityFormDialogProps) {
+export function ActivityFormDialog({ open, onOpenChange, onSubmit }: ActivityFormDialogProps) {
   const [formData, setFormData] = useState({
     type: 'call' as Activity['type'],
     leadName: '',
@@ -28,6 +29,7 @@ export function ActivityFormDialog({ open, onOpenChange }: ActivityFormDialogPro
       return;
     }
     toast.success('Activity logged successfully!');
+    onSubmit?.();
     onOpenChange(false);
     setFormData({ type: 'call', leadName: '', description: '', outcome: '' });
   };

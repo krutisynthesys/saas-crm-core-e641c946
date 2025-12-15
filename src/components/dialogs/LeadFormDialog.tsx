@@ -1,10 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { Lead } from '@/data/mockData';
 import { toast } from 'sonner';
 
@@ -12,21 +11,40 @@ interface LeadFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   lead?: Lead | null;
-  mode: 'create' | 'edit';
+  mode?: 'create' | 'edit';
+  onSubmit?: () => void;
 }
 
-export function LeadFormDialog({ open, onOpenChange, lead, mode }: LeadFormDialogProps) {
+export function LeadFormDialog({ open, onOpenChange, lead, mode = 'create', onSubmit }: LeadFormDialogProps) {
   const [formData, setFormData] = useState({
-    name: lead?.name || '',
-    email: lead?.email || '',
-    phone: lead?.phone || '',
-    company: lead?.company || '',
-    industry: lead?.industry || '',
-    status: lead?.status || 'new',
-    priority: lead?.priority || 'medium',
-    source: lead?.source || '',
-    dealValue: lead?.dealValue?.toString() || '',
+    name: '',
+    email: '',
+    phone: '',
+    company: '',
+    industry: '',
+    status: 'new' as Lead['status'],
+    priority: 'medium' as Lead['priority'],
+    source: '',
+    dealValue: '',
   });
+
+  useEffect(() => {
+    if (lead) {
+      setFormData({
+        name: lead.name || '',
+        email: lead.email || '',
+        phone: lead.phone || '',
+        company: lead.company || '',
+        industry: lead.industry || '',
+        status: lead.status || 'new',
+        priority: lead.priority || 'medium',
+        source: lead.source || '',
+        dealValue: lead.dealValue?.toString() || '',
+      });
+    } else {
+      setFormData({ name: '', email: '', phone: '', company: '', industry: '', status: 'new', priority: 'medium', source: '', dealValue: '' });
+    }
+  }, [lead, open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +53,7 @@ export function LeadFormDialog({ open, onOpenChange, lead, mode }: LeadFormDialo
       return;
     }
     toast.success(mode === 'create' ? 'Lead created successfully!' : 'Lead updated successfully!');
+    onSubmit?.();
     onOpenChange(false);
   };
 

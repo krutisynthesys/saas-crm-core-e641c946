@@ -191,7 +191,7 @@ export default function Leads() {
       </div>
 
       <LeadFormDialog open={leadFormOpen} onOpenChange={setLeadFormOpen} lead={selectedLead} mode={leadFormMode} />
-      <ViewDetailDialog open={viewDialogOpen} onOpenChange={setViewDialogOpen} type="lead" data={selectedLead} />
+      <ViewDetailDialog open={viewDialogOpen} onOpenChange={setViewDialogOpen} title={selectedLead?.name || 'Lead Details'} data={selectedLead ? { Name: selectedLead.name, Email: selectedLead.email, Phone: selectedLead.phone, Company: selectedLead.company, Industry: selectedLead.industry, Status: selectedLead.status, Priority: selectedLead.priority, Source: selectedLead.source, Owner: selectedLead.owner, 'Deal Value': `$${selectedLead.dealValue.toLocaleString()}` } : {}} />
       <EmailDialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen} recipientEmail={selectedLead?.email} recipientName={selectedLead?.name} />
       <CallLogDialog open={callDialogOpen} onOpenChange={setCallDialogOpen} leadName={selectedLead?.name} />
       <ConfirmDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} title="Delete Lead" description={`Are you sure you want to delete ${selectedLead?.name}? This action cannot be undone.`} onConfirm={confirmDelete} confirmLabel="Delete" variant="destructive" />

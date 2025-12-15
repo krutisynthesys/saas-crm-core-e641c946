@@ -22,8 +22,9 @@ import {
   Plus,
   Download,
 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { ActivityFormDialog } from '@/components/dialogs/ActivityFormDialog';
+import { toast } from 'sonner';
 
 const activityIcons = {
   call: Phone,
@@ -52,6 +53,7 @@ const activityLabels = {
 export default function Activities() {
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [activityDialogOpen, setActivityDialogOpen] = useState(false);
 
   const filteredActivities = mockActivities.filter((activity) => {
     const matchesSearch =
@@ -76,6 +78,15 @@ export default function Activities() {
     return groups;
   }, {} as Record<string, Activity[]>);
 
+  const handleLogActivity = () => {
+    setActivityDialogOpen(true);
+  };
+
+  const handleActivitySubmit = () => {
+    toast.success('Activity logged successfully');
+    setActivityDialogOpen(false);
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -89,7 +100,7 @@ export default function Activities() {
             <Button variant="outline">
               <Download className="h-4 w-4 mr-1.5" /> Export
             </Button>
-            <Button variant="gradient">
+            <Button variant="gradient" onClick={handleLogActivity}>
               <Plus className="h-4 w-4 mr-1.5" /> Log Activity
             </Button>
           </div>
@@ -220,6 +231,12 @@ export default function Activities() {
           ))}
         </div>
       </div>
+
+      {/* Activity Dialog */}
+      <ActivityFormDialog
+        open={activityDialogOpen}
+        onOpenChange={setActivityDialogOpen}
+      />
     </DashboardLayout>
   );
 }

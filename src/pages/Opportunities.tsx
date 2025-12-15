@@ -6,14 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -26,6 +19,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -41,8 +35,13 @@ import {
   Calendar,
   Eye,
   Edit,
+  Trash2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { OpportunityFormDialog } from '@/components/dialogs/OpportunityFormDialog';
+import { ViewDetailDialog } from '@/components/dialogs/ViewDetailDialog';
+import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
+import { toast } from 'sonner';
 
 const stages = [
   { key: 'qualification', label: 'Qualification', color: 'bg-blue-500' },
@@ -53,10 +52,15 @@ const stages = [
 ];
 
 export default function Opportunities() {
+  const [opportunities, setOpportunities] = useState(mockOpportunities);
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
   const [searchQuery, setSearchQuery] = useState('');
+  const [formDialogOpen, setFormDialogOpen] = useState(false);
+  const [editingOpp, setEditingOpp] = useState<Opportunity | null>(null);
+  const [viewingOpp, setViewingOpp] = useState<Opportunity | null>(null);
+  const [deletingOpp, setDeletingOpp] = useState<Opportunity | null>(null);
 
-  const filteredOpportunities = mockOpportunities.filter(
+  const filteredOpportunities = opportunities.filter(
     (opp) =>
       opp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       opp.leadName.toLowerCase().includes(searchQuery.toLowerCase())
@@ -85,6 +89,30 @@ export default function Opportunities() {
     0
   );
 
+  const handleAddOpp = () => {
+    setEditingOpp(null);
+    setFormDialogOpen(true);
+  };
+
+  const handleEditOpp = (opp: Opportunity) => {
+    setEditingOpp(opp);
+    setFormDialogOpen(true);
+  };
+
+  const handleDeleteOpp = () => {
+    if (deletingOpp) {
+      setOpportunities(prev => prev.filter(o => o.id !== deletingOpp.id));
+      toast.success('Opportunity deleted');
+      setDeletingOpp(null);
+    }
+  };
+
+  const handleFormSubmit = () => {
+    toast.success(editingOpp ? 'Opportunity updated' : 'Opportunity created');
+    setFormDialogOpen(false);
+    setEditingOpp(null);
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -94,7 +122,7 @@ export default function Opportunities() {
             <h2 className="text-2xl font-bold text-foreground">Opportunities</h2>
             <p className="text-muted-foreground">Track and manage your sales pipeline</p>
           </div>
-          <Button variant="gradient">
+          <Button variant="gradient" onClick={handleAddOpp}>
             <Plus className="h-4 w-4 mr-1.5" /> New Opportunity
           </Button>
         </div>
@@ -217,11 +245,15 @@ export default function Opportunities() {
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end" className="bg-popover">
-                                  <DropdownMenuItem className="cursor-pointer">
-                                    <Eye className="h-4 w-4 mr-2" /> View
+                                  <DropdownMenuItem className="cursor-pointer" onClick={() => setViewingOpp(opp)}>
+                                    <Eye className="h-4 w-4 mr-2" /> View Details
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem className="cursor-pointer">
+                                  <DropdownMenuItem className="cursor-pointer" onClick={() => handleEditOpp(opp)}>
                                     <Edit className="h-4 w-4 mr-2" /> Edit
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive" onClick={() => setDeletingOpp(opp)}>
+                                    <Trash2 className="h-4 w-4 mr-2" /> Delete
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
@@ -258,7 +290,7 @@ export default function Opportunities() {
                     </div>
 
                     {/* Add opportunity button */}
-                    <Button variant="ghost" size="sm" className="w-full text-muted-foreground">
+                    <Button variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={handleAddOpp}>
                       <Plus className="h-4 w-4 mr-1" /> Add Opportunity
                     </Button>
                   </div>
@@ -310,9 +342,25 @@ export default function Opportunities() {
                       {new Date(opp.expectedCloseDate).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="icon-sm">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon-sm">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-popover">
+                          <DropdownMenuItem className="cursor-pointer" onClick={() => setViewingOpp(opp)}>
+                            <Eye className="h-4 w-4 mr-2" /> View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="cursor-pointer" onClick={() => handleEditOpp(opp)}>
+                            <Edit className="h-4 w-4 mr-2" /> Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive" onClick={() => setDeletingOpp(opp)}>
+                            <Trash2 className="h-4 w-4 mr-2" /> Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -321,6 +369,37 @@ export default function Opportunities() {
           </div>
         )}
       </div>
+
+      {/* Dialogs */}
+      <OpportunityFormDialog
+        open={formDialogOpen}
+        onOpenChange={setFormDialogOpen}
+        opportunity={editingOpp}
+        mode={editingOpp ? 'edit' : 'create'}
+      />
+      <ViewDetailDialog
+        open={!!viewingOpp}
+        onOpenChange={() => setViewingOpp(null)}
+        title={viewingOpp?.name || 'Opportunity Details'}
+        data={viewingOpp ? {
+          Lead: viewingOpp.leadName,
+          Stage: viewingOpp.stage,
+          Value: formatCurrency(viewingOpp.value),
+          Probability: `${viewingOpp.probability}%`,
+          Owner: viewingOpp.owner,
+          'Expected Close': new Date(viewingOpp.expectedCloseDate).toLocaleDateString(),
+          Products: viewingOpp.products.join(', '),
+          Notes: viewingOpp.notes,
+        } : {}}
+      />
+      <ConfirmDialog
+        open={!!deletingOpp}
+        onOpenChange={() => setDeletingOpp(null)}
+        title="Delete Opportunity"
+        description={`Are you sure you want to delete "${deletingOpp?.name}"? This action cannot be undone.`}
+        onConfirm={handleDeleteOpp}
+        variant="destructive"
+      />
     </DashboardLayout>
   );
 }

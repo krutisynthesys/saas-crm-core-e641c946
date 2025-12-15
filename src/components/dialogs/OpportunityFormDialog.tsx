@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,20 +12,38 @@ interface OpportunityFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   opportunity?: Opportunity | null;
-  mode: 'create' | 'edit';
+  mode?: 'create' | 'edit';
+  onSubmit?: () => void;
 }
 
-export function OpportunityFormDialog({ open, onOpenChange, opportunity, mode }: OpportunityFormDialogProps) {
+export function OpportunityFormDialog({ open, onOpenChange, opportunity, mode = 'create', onSubmit }: OpportunityFormDialogProps) {
   const [formData, setFormData] = useState({
-    name: opportunity?.name || '',
-    leadName: opportunity?.leadName || '',
-    stage: opportunity?.stage || 'qualification',
-    value: opportunity?.value?.toString() || '',
-    probability: opportunity?.probability?.toString() || '50',
-    owner: opportunity?.owner || '',
-    expectedCloseDate: opportunity?.expectedCloseDate || '',
-    notes: opportunity?.notes || '',
+    name: '',
+    leadName: '',
+    stage: 'qualification' as Opportunity['stage'],
+    value: '',
+    probability: '50',
+    owner: '',
+    expectedCloseDate: '',
+    notes: '',
   });
+
+  useEffect(() => {
+    if (opportunity) {
+      setFormData({
+        name: opportunity.name || '',
+        leadName: opportunity.leadName || '',
+        stage: opportunity.stage || 'qualification',
+        value: opportunity.value?.toString() || '',
+        probability: opportunity.probability?.toString() || '50',
+        owner: opportunity.owner || '',
+        expectedCloseDate: opportunity.expectedCloseDate || '',
+        notes: opportunity.notes || '',
+      });
+    } else {
+      setFormData({ name: '', leadName: '', stage: 'qualification', value: '', probability: '50', owner: '', expectedCloseDate: '', notes: '' });
+    }
+  }, [opportunity, open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,6 +52,7 @@ export function OpportunityFormDialog({ open, onOpenChange, opportunity, mode }:
       return;
     }
     toast.success(mode === 'create' ? 'Opportunity created successfully!' : 'Opportunity updated successfully!');
+    onSubmit?.();
     onOpenChange(false);
   };
 
